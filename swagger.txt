@@ -1,0 +1,114 @@
+servers:
+  - url: https://api.warranty.company.com/workflow/v1
+    description: Production server
+  - url: https://api-staging.warranty.company.com/workflow/v1
+    description: Staging server
+
+paths:
+  /claims:
+    post:
+      summary: Initiate new warranty claim
+      operationId: initiateClaim
+      tags:
+        - Claim Management
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InitiateClaimRequest'
+      responses:
+        '201':
+          description: Claim initiated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClaimInitiationResponse'
+        '400':
+          description: Invalid claim initiation data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+schemas:
+    InitiateClaimRequest:
+      type: object
+      required:
+        - productInfo
+        - userContext
+      properties:
+        productInfo:
+          type: object
+          required:
+            - serialNumber
+          properties:
+            serialNumber:
+              type: string
+              description: Product serial number
+              example: "ABC123456789"
+        userContext:
+          type: object
+          required:
+            - userId
+            - dealerInfo
+          properties:
+            userId:
+              type: string
+              example: "USER-12345"
+            dealerInfo:
+              type: object
+              properties:
+                dealerId:
+                  type: string
+                  example: "DEALER-001"
+                dealerName:
+                  type: string
+                  example: "ABC Service Center"
+
+    ClaimInitiationResponse:
+      type: object
+      required:
+        - claimId
+        - status
+        - productDetails
+      properties:
+        claimId:
+          type: string
+          description: Generated claim identifier
+          example: "CLAIM-12345"
+        status:
+          type: string
+          enum: ["Draft", "Initiated"]
+          example: "Initiated"
+        productDetails:
+          $ref: '#/components/schemas/ProductDetails'
+        warrantyInfo:
+          $ref: '#/components/schemas/WarrantyInfo'
+        initiatedAt:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+ErrorResponse:
+      type: object
+      required:
+        - errorCode
+        - message
+      properties:
+        errorCode:
+          type: string
+          description: Machine-readable error code
+          example: "CLAIM_VALIDATION_FAILED"
+        message:
+          type: string
+          description: Human-readable error message
+          example: "Claim validation failed due to missing required fields"
+        details:
+          type: object
+          description: Additional error context
+          additionalProperties: true
+        timestamp:
+          type: string
+          format: date-time
+          description: Error timestamp
+          example: "2024-01-15T10:30:00Z"

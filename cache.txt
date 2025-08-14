@@ -1,0 +1,81 @@
+PS C:\Users\skumar10\Documents\E2E- AI- QA\5__Execution_testscripts> node .\fetch_testcase_by_key.js GSSEP-T44
+No steps found for this test case.
+{
+  "testData": [],
+  "precondition": "Engine is in cold state with all fuel lines pressurized and safety systems active. Hot-gas manifold cooling circuit is operational.",
+  "priority": {
+    "isDefault": true,
+    "color": "#ffa900",
+    "i18nKey": "TESTCASE.PRIORITY.NORMAL",
+    "name": "Normal",
+    "index": 1,
+    "id": 16087,
+    "projectId": 48405
+  },
+  "majorVersion": 1,
+  "objective": "Verify that the engine combustion chamber operates correctly with proper fuel mixing and ignition sequence",
+  "labels": [
+    "Functional",
+    "Integration"
+  ],
+  "archived": false,
+  "averageTime": 0,
+  "latestVersion": true,
+  "testScript": {
+    "stepByStepScript": {
+      "id": 233914,
+      "steps": [
+        {
+          "expectedResult": "Propellants mix properly at the injector with no blockages or irregularities",
+          "index": 2,
+          "description": "Inject gaseous hydrogen and liquid oxygen into the chamber via the injector",
+          "id": 1381031
+        },
+        {
+          "expectedResult": "Igniters automatically shutdown and combustion continues independently without external ignition source",
+          "index": 5,
+          "description": "Verify igniter shutdown occurs automatically after combustion stabilizes",
+          "id": 1381034
+        },
+        {
+          "expectedResult": "Hot-gas manifold cooling circuit operates within normal parameters",
+          "index": 0,
+          "description": "Initialize the hot-gas manifold cooling circuit",
+          "id": 1381029
+        },
+        {
+          "expectedResult": "Fuel-rich hot gas is delivered consistently to the combustion chamber",
+          "index": 1,
+          "description": "Begin fuel-rich hot gas delivery to the main combustion chamber",
+          "id": 1381030
+        },
+        {
+          "expectedResult": "Spark igniter initiates combustion successfully on first attempt",
+          "index": 3,
+          "description": "Activate the dual-redundant spark igniter chamber located in the center of the injector",
+          "id": 1381032
+        },
+        {
+          "expectedResult": "When the combustion is started ensure the igniters are turned off after approximately three seconds because the combustion process is self-sustaining",
+          "index": 4,
+          "description": "Monitor the combustion initiation and verify self-sustaining combustion",
+          "id": 1381033
+        }
+      ]
+    }
+  },
+  "name": "Combustion Chamber Fuel Mixing Process",
+  "id": 309748,
+  "parameters": [],
+  "projectId": 48405,
+  "key": "GSSEP-T44",
+  "status": {
+    "isDefault": true,
+    "color": "#f0ad4e",
+    "i18nKey": "TESTCASE.STATUS.DRAFT",
+    "name": "Draft",
+    "index": 0,
+    "id": 16077,
+    "projectId": 48405
+  }
+}

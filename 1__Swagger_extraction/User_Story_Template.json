@@ -1,0 +1,46 @@
+{
+  "storyMetadata": {
+    "id": "",
+    "key": "",
+    "summary": "",
+    "objective": ""
+  },
+  "apiSpecification": {
+    "endpoint": "",
+    "method": "",
+    "contentType": "",
+    "purpose": "",
+    "expectedSuccessCode": "",
+    "authentication": ""
+  },
+  "requestBodyModel": [
+    {
+      "field": "",
+      "type": "",
+      "required": "",
+      "constraints": "",
+      "sampleValue": "",
+      "validationRules": ""
+    }
+  ],
+  "responseBodyModel": [
+    {
+      "field": "",
+      "type": "",
+      "alwaysPresent": "",
+      "sampleValue": "",
+      "validationNotes": ""
+    }
+  ],
+  "additionalInformation": {
+    "businessRules": [
+      ""
+    ],
+    "errorScenarios": [
+      ""
+    ],
+    "dependencies": [
+      ""
+    ]
+  }
+}

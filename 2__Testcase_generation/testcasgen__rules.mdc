@@ -1,0 +1,136 @@
+---
+alwaysApply: true
+---
+
+# Test Case Generation Agent Rules
+
+## Goal
+Generate high-signal, non-duplicate API test cases and output them strictly as JSON matching `2__Testcase_generation/test_case_schema.json`.
+
+## Tester Mindset
+- **Quality focus**: Validate behavior against requirements and ACs
+- **Risk-based**: Prioritize by impact and likelihood
+- **Realistic usage**: Consider UX and failure modes
+- **Structured**: Follow a repeatable, concise process
+
+## Inputs and Normalization
+Accept (in priority order): 1) JIRA key, 2) story JSON, 3) story text. Normalize into a canonical spec:
+- storyId, title, description
+- acceptanceCriteria[]
+- endpoints[]: { path, method, auth?, request:{ headers, params, query, body, schema }, response:{ statusCodes[], schema }, rateLimits?, pagination?, sorting?, filtering? }
+- businessRules[] (derived from description/AC)
+- dataModels[]: fields with type, required, constraints (min/max/regex/enum/unique)
+If only JSON/story text is provided, treat it as authoritative.
+
+## Applicability Reasoning (Category Selection)
+For each endpoint, mark categories Applicable/Limited/Not Applicable with a 1-line justification:
+- Always consider: Simple Positive, Negative
+- BVA: when constraints exist (numeric/string/date), pagination/limits, rate limits
+- Data Validation: typed fields, enums, formats (email/UUID/date), schema rules
+- Business Logic: workflows, side-effects, state transitions, idempotency, derived values, conditional fields
+- De-prioritize irrelevant categories (e.g., GET /health → minimal)
+
+## Scenario Drafting (Applicable Categories Only)
+Group by endpoint. Keep minimal for simple endpoints.
+
+CRITICAL: Avoid duplicate scenarios across categories (project standard).
+- Auth errors live in Negative (401/403)
+- Schema violations live in Data Validation
+- Business rule violations live in Business Logic
+- Each scenario tests ONE primary concern; choose the most specific category
+- Do not repeat similar scenarios across categories
+
+### Method Guidance (concise)
+- GET/HEAD: Positive (filters/sorting/pagination/schema/caching), Negative (invalid ids/queries, unauthorized/not found), BVA (page/pageSize bounds), Data Validation (param types/enums), Business Logic (tenancy/visibility/derived flags)
+- POST: Positive (minimal/full body, idempotency key, Location), Negative (missing required, invalid types/formats, duplicates, unauthorized), BVA (lengths/bounds/array sizes), Data Validation (enums/regex/cross-field), Business Logic (defaults/side-effects/uniqueness/quotas)
+- PUT/PATCH: Positive (full/partial, persistence, concurrency via ETag), Negative (invalid id/paths, forbidden fields, stale ETag), BVA (updated field bounds), Data Validation (patch schema/types), Business Logic (state transitions/immutability/conditional required)
+- DELETE: Positive (valid id, soft vs hard, idempotency), Negative (invalid id, unauthorized, referential integrity), Data Validation (id formats), Business Logic (cascade/retention/audit)
+- AUTH: Positive (valid creds/token, TTL/claims), Negative (invalid/expired/revoked/replay), BVA (lockout/rate limits), Data Validation (header format/token structure), Business Logic (MFA/role-scope mapping)
+- FILES: Positive (allowed mime/size, checksum/resumable), Negative (disallowed/oversize), BVA (exact limits), Data Validation (content-type/encoding), Business Logic (AV/quarantine/retention)
+- BULK/SEARCH: Positive (filter+sort combos, stable ordering, pagination links), Negative (bad operators/injection), BVA (limit/offset extremes), Data Validation (operator/field names), Business Logic (access scoping/relevance)
+
+## From Scenarios to Test Cases
+For each scenario, create one or more executable test cases with fields mapped as follows:
+- Name: concise “METHOD path – scenario summary”
+- Status: default “Draft” unless specified
+- Precondition: auth state, seed data, env flags
+- Objective: what behavior is being validated
+- Priority: map by risk (Business Logic/Security/Data Integrity → High; Core Positive/Typical Negatives → Medium; Extensive BVA/Rare Edges → Low–Medium by impact)
+- Labels: e.g., [Functional, Positive|Negative, Data Validation|Business Logic]
+- Steps: numbered strings describing request(s) and checks; pair each step’s inputs with Data
+- Data: array of strings providing per-step inputs/test data aligned with Steps (entries may be empty; must be same length as Steps)
+- Expected: numbered strings with status, body assertions, headers, side-effects
+Alignment rule: Steps, Data, and Expected arrays must be index-aligned and of equal length.
+
+## Output: JSON Test Cases (strict)
+Return ONLY a JSON array of test case objects that exactly matches `test_case_schema.json`:
+- Keys: Name, Status, Precondition, Objective, Priority, Labels, Steps, Data, Expected
+- Types: Status/Priority are strings; Labels/Steps/Data/Expected are arrays of strings
+- Lengths: Steps.length == Data.length == Expected.length (index-aligned); Data entries may be empty strings
+- No markdown, no trailing commentary
+
+Example (structure only):
+```json
+[
+  {
+    "Name": "GET /users – returns paged list",
+    "Status": "Draft",
+    "Precondition": "Valid auth token for role 'User'",
+    "Objective": "Validate default pagination and response schema",
+    "Priority": "Medium",
+    "Labels": ["Functional", "Positive"],
+    "Steps": [
+      "Send GET /users",
+      "Verify response includes items[], total, page=1, pageSize default"
+    ],
+    "Data": [
+      "Headers: Authorization=Bearer <token>",
+      ""
+    ],
+    "Expected": [
+      "200 status code",
+      "items is an array; total is a number; page=1; pageSize is default"
+    ]
+  },
+  {
+    "Name": "POST /users – rejects missing required fields",
+    "Status": "Draft",
+    "Precondition": "Valid auth token for role 'Admin'",
+    "Objective": "Ensure server rejects payload without required fields",
+    "Priority": "High",
+    "Labels": ["Functional", "Negative", "Data Validation"],
+    "Steps": [
+      "Send POST /users with body {}",
+      "Verify error response contract"
+    ],
+    "Data": [
+      "{}",
+      "Authorization token"
+    ],
+    "Expected": [
+      "400 status code",
+      "Error response includes code and message; no user created"
+    ]
+    // Corresponding to each step -  there's data ( might be empty ) - and expected result so their size would be same
+  }
+]
+```
+
+## Quality Standards
+- Keep scenarios concise; include only applicable categories
+- Prefer few high-signal tests for simple endpoints (e.g., GET /health)
+- Ensure cases are executable by any team member
+- Use consistent naming and deterministic data when possible
+
+## Decision Checklist (per Endpoint)
+- Inputs present? body vs query vs path vs headers
+- Auth/roles/tenancy required?
+- Side-effects or state transitions?
+- Constraints/enums/ranges? If yes → BVA + Data Validation
+- Rate limits, idempotency, concurrency controls?
+- Pagination/sorting/filtering?
+- Dependencies/referential integrity?
+- Observability: headers (ETag, Cache-Control), audit events
+
+## Clarifications
+If information is missing, ask targeted questions before scenario drafting or mark categories as Limited. Otherwise, proceed and generate the JSON test cases in the same required format in `2__Testcase_generation` folder

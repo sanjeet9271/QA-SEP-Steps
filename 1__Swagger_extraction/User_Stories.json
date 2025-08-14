@@ -1,0 +1,102 @@
+{
+  "storyMetadata": {
+    "id": "",
+    "key": "",
+    "summary": "As a dealer, I want to initiate a warranty claim so that a claim can be created for a product.",
+    "objective": "Enable claim initiation using product serial number and user context."
+  },
+  "apiSpecification": {
+    "endpoint": "/claims",
+    "method": "POST",
+    "contentType": "application/json",
+    "purpose": "Initiate new warranty claim",
+    "expectedSuccessCode": "201",
+    "authentication": ""
+  },
+  "requestBodyModel": [
+    {
+      "field": "productInfo.serialNumber",
+      "type": "string",
+      "required": "yes",
+      "constraints": "",
+      "sampleValue": "ABC123456789",
+      "validationRules": "Must be a non-empty string."
+    },
+    {
+      "field": "userContext.userId",
+      "type": "string",
+      "required": "yes",
+      "constraints": "",
+      "sampleValue": "USER-12345",
+      "validationRules": "Must be a non-empty string."
+    },
+    {
+      "field": "userContext.dealerInfo.dealerId",
+      "type": "string",
+      "required": "no",
+      "constraints": "",
+      "sampleValue": "DEALER-001",
+      "validationRules": ""
+    },
+    {
+      "field": "userContext.dealerInfo.dealerName",
+      "type": "string",
+      "required": "no",
+      "constraints": "",
+      "sampleValue": "ABC Service Center",
+      "validationRules": ""
+    }
+  ],
+  "responseBodyModel": [
+    {
+      "field": "claimId",
+      "type": "string",
+      "alwaysPresent": "yes",
+      "sampleValue": "CLAIM-12345",
+      "validationNotes": ""
+    },
+    {
+      "field": "status",
+      "type": "string",
+      "alwaysPresent": "yes",
+      "sampleValue": "Initiated",
+      "validationNotes": "Enum: Draft, Initiated"
+    },
+    {
+      "field": "productDetails",
+      "type": "object",
+      "alwaysPresent": "yes",
+      "sampleValue": "",
+      "validationNotes": "Referenced schema ProductDetails"
+    },
+    {
+      "field": "warrantyInfo",
+      "type": "object",
+      "alwaysPresent": "no",
+      "sampleValue": "",
+      "validationNotes": "Referenced schema WarrantyInfo"
+    },
+    {
+      "field": "initiatedAt",
+      "type": "string (date-time)",
+      "alwaysPresent": "no",
+      "sampleValue": "2024-01-15T10:30:00Z",
+      "validationNotes": "ISO 8601 timestamp"
+    }
+  ],
+  "additionalInformation": {
+    "businessRules": [
+      "Top-level required objects: productInfo, userContext",
+      "Within productInfo, serialNumber is required",
+      "Within userContext, userId and dealerInfo are required"
+    ],
+    "errorScenarios": [
+      "400 Invalid claim initiation data: returns ErrorResponse with fields errorCode (string), message (string), details (object), timestamp (date-time)"
+    ],
+    "dependencies": [
+      "Response references schemas ProductDetails and WarrantyInfo"
+    ]
+  }
+}
+
+

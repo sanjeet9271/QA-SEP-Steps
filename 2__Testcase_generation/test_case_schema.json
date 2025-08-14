@@ -1,0 +1,36 @@
+{
+  "test_case_schema": {
+    "Name": "string - Test case name (required)",
+    "Status": "string - Draft | Approved | In Review | etc.",
+    "Precondition": "string - Prerequisites and setup conditions",
+    "Objective": "string - Goal and purpose of the test case",
+    "Priority": "string - Low | Medium | High | Critical",
+    "Labels": "array - [Functional, Non-Functional, Smoke, Integration, etc.]",
+    "Steps": "array - [step1, step2, step3, ...] (must have same length as Expected and Data)",
+    "Data": "array - [data_for_step1, data_for_step2, ...] (aligns with Steps by index; must have same length as Steps; entries may be empty)",
+    "Expected": "array - [expected_result1, expected_result2, expected_result3, ...] (must have same length as Steps and Data)"
+  },
+  "example_structure": {
+    "Name": "Example Test Case",
+    "Status": "Draft",
+    "Precondition": "System is in initial state and all prerequisites are met",
+    "Objective": "Validate that the feature works as expected",
+    "Priority": "High",
+    "Labels": ["Functional", "Smoke"],
+    "Steps": [
+      "Step 1: Perform initial action",
+      "Step 2: Execute main functionality",
+      "Step 3: Verify final state"
+    ],
+    "Data": [
+      "Sample payload or parameters for Step 1",
+      "",
+      "Sample ID or environment flag for Step 3"
+    ],
+    "Expected": [
+      "Expected result 1: Initial action completed successfully",
+      "Expected result 2: Main functionality works correctly",
+      "Expected result 3: Final state is as expected"
+    ]
+  }
+}

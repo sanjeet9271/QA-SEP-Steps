@@ -1,0 +1,6 @@
+---
+description: Rules for converting OpenAPI/Swagger specs into user stories JSON
+globs:
+alwaysApply: false
+---
+Given an OpenAPI/Swagger specification, generate a JSON file that strictly matches `1__Swagger_extraction/User_Story_Template.json`. Save the output in `1__Swagger_extraction/` (e.g., `User_Stories.json`).

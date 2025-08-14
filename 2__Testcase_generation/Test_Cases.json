@@ -1,0 +1,144 @@
+[
+  {
+    "Name": "POST /claims – minimal payload creates claim",
+    "Status": "Draft",
+    "Precondition": "API base URL configured; authentication unspecified in spec (tests assume no auth). Content-Type: application/json",
+    "Objective": "Validate claim initiation succeeds with only required fields present",
+    "Priority": "Medium",
+    "Labels": ["Functional", "Positive"],
+    "Steps": [
+      "Send POST /claims with minimal valid body",
+      "Validate response status and core body fields"
+    ],
+    "Data": [
+      "{\n  \"productInfo\": { \"serialNumber\": \"ABC123456789\" },\n  \"userContext\": { \"userId\": \"USER-12345\", \"dealerInfo\": {} }\n}",
+      ""
+    ],
+    "Expected": [
+      "201 Created; response Content-Type is application/json",
+      "Body contains claimId (non-empty string), status=Initiated, productDetails (object); initiatedAt is ISO 8601 if present; warrantyInfo may be present or absent"
+    ]
+  },
+  {
+    "Name": "POST /claims – full payload accepted",
+    "Status": "Draft",
+    "Precondition": "API base URL configured; authentication unspecified in spec (tests assume no auth). Content-Type: application/json",
+    "Objective": "Validate server accepts full dealer info and returns a valid claim",
+    "Priority": "Medium",
+    "Labels": ["Functional", "Positive"],
+    "Steps": [
+      "Send POST /claims with full valid body including dealerId and dealerName",
+      "Validate response status and body fields"
+    ],
+    "Data": [
+      "{\n  \"productInfo\": { \"serialNumber\": \"ABC123456789\" },\n  \"userContext\": { \"userId\": \"USER-12345\", \"dealerInfo\": { \"dealerId\": \"DEALER-001\", \"dealerName\": \"ABC Service Center\" } }\n}",
+      ""
+    ],
+    "Expected": [
+      "201 Created",
+      "Body contains claimId (non-empty string), status in [Draft, Initiated] with example Initiated; productDetails present; warrantyInfo optional"
+    ]
+  },
+  {
+    "Name": "POST /claims – missing top-level required object (productInfo) rejected",
+    "Status": "Draft",
+    "Precondition": "API base URL configured; authentication unspecified in spec (tests assume no auth)",
+    "Objective": "Ensure request without required top-level object is rejected",
+    "Priority": "High",
+    "Labels": ["Functional", "Negative", "Data Validation"],
+    "Steps": [
+      "Send POST /claims with body missing productInfo",
+      "Validate error response contract"
+    ],
+    "Data": [
+      "{\n  \"userContext\": { \"userId\": \"USER-12345\", \"dealerInfo\": {} }\n}",
+      ""
+    ],
+    "Expected": [
+      "400 Bad Request",
+      "ErrorResponse includes errorCode (string), message (string), details (object allowed), timestamp (ISO 8601)"
+    ]
+  },
+  {
+    "Name": "POST /claims – missing required nested object (userContext.dealerInfo) rejected",
+    "Status": "Draft",
+    "Precondition": "API base URL configured; authentication unspecified in spec (tests assume no auth)",
+    "Objective": "Ensure request missing userContext.dealerInfo is rejected per story rule",
+    "Priority": "High",
+    "Labels": ["Functional", "Negative", "Data Validation"],
+    "Steps": [
+      "Send POST /claims with body missing userContext.dealerInfo",
+      "Validate error response contract"
+    ],
+    "Data": [
+      "{\n  \"productInfo\": { \"serialNumber\": \"ABC123456789\" },\n  \"userContext\": { \"userId\": \"USER-12345\" }\n}",
+      ""
+    ],
+    "Expected": [
+      "400 Bad Request",
+      "ErrorResponse includes errorCode (string), message (string), details (object allowed), timestamp (ISO 8601)"
+    ]
+  },
+  {
+    "Name": "POST /claims – invalid type for productInfo.serialNumber rejected",
+    "Status": "Draft",
+    "Precondition": "API base URL configured; authentication unspecified in spec (tests assume no auth)",
+    "Objective": "Ensure server rejects payload with incorrect type for serialNumber",
+    "Priority": "High",
+    "Labels": ["Functional", "Negative", "Data Validation"],
+    "Steps": [
+      "Send POST /claims where productInfo.serialNumber is a number instead of string",
+      "Validate error response contract"
+    ],
+    "Data": [
+      "{\n  \"productInfo\": { \"serialNumber\": 123456789 },\n  \"userContext\": { \"userId\": \"USER-12345\", \"dealerInfo\": {} }\n}",
+      ""
+    ],
+    "Expected": [
+      "400 Bad Request",
+      "ErrorResponse includes errorCode (string), message (string), details (object allowed), timestamp (ISO 8601)"
+    ]
+  },
+  {
+    "Name": "POST /claims – response schema: enums and formats",
+    "Status": "Draft",
+    "Precondition": "API base URL configured; authentication unspecified in spec (tests assume no auth)",
+    "Objective": "Validate response fields adhere to declared enums and formats",
+    "Priority": "Medium",
+    "Labels": ["Functional", "Data Validation"],
+    "Steps": [
+      "Send POST /claims with full valid body",
+      "Validate response: status is in [Draft, Initiated]; initiatedAt is ISO 8601 date-time when present; productDetails is object; warrantyInfo if present is object"
+    ],
+    "Data": [
+      "{\n  \"productInfo\": { \"serialNumber\": \"ABC123456789\" },\n  \"userContext\": { \"userId\": \"USER-12345\", \"dealerInfo\": { \"dealerId\": \"DEALER-001\", \"dealerName\": \"ABC Service Center\" } }\n}",
+      ""
+    ],
+    "Expected": [
+      "201 Created",
+      "status is one of [Draft, Initiated]; initiatedAt (if present) matches ISO 8601; productDetails is an object; warrantyInfo if present is an object"
+    ]
+  },
+  {
+    "Name": "POST /claims – BVA: empty serialNumber rejected",
+    "Status": "Draft",
+    "Precondition": "API base URL configured; authentication unspecified in spec (tests assume no auth)",
+    "Objective": "Validate boundary condition for serialNumber as empty string",
+    "Priority": "Medium",
+    "Labels": ["Functional", "Negative", "BVA"],
+    "Steps": [
+      "Send POST /claims with serialNumber as empty string",
+      "Validate error response contract"
+    ],
+    "Data": [
+      "{\n  \"productInfo\": { \"serialNumber\": \"\" },\n  \"userContext\": { \"userId\": \"USER-12345\", \"dealerInfo\": {} }\n}",
+      ""
+    ],
+    "Expected": [
+      "400 Bad Request",
+      "ErrorResponse includes errorCode (string), message (string), details (object allowed), timestamp (ISO 8601)"
+    ]
+  }
+]
+
+

@@ -1,0 +1,124 @@
+---
+alwaysApply: false
+---
+
+# JSON to Playwright Test Script Conversion Rules
+
+## Core Principles
+- **Direct Translation**: Convert JSON test steps into executable Playwright code
+- **Maintainable Structure**: Use consistent patterns and clear test organization
+- **API Testing Focus**: Leverage Playwright's request context for API testing
+- **Data-Driven**: Use per-step `Data` aligned with `Steps` from JSON
+
+## Conversion Workflow
+
+### Phase 1: Iterative JSON Processing
+**Process JSON test cases one by one in sequence:**
+1. Read the JSON file of test cases (array or `{ "test_cases": [...] }`)
+2. For each test case, parse fields: `Name`, `Objective`, `Priority`, `Precondition`, `Labels`, `Steps[]`, `Data[]`, `Expected[]`
+3. Ensure `Steps.length == Data.length == Expected.length`
+4. Extract API details from each step: method, endpoint, headers, body, expected status codes
+5. Generate a Playwright test for the current test case and write it to disk
+6. Provide short review and analysis for the generated test case (optional)
+
+### Phase 2: Individual Test Case Generation
+For each JSON test case, generate a single Playwright test with this structure:
+```javascript
+// Test Case ID: [CSV Row Test Case Name]
+test('[Test Case Name] - [Priority]', async ({ request }) => {
+  // Test implementation for this specific case
+});
+```
+
+### Phase 3: Test Implementation Patterns (API)
+
+#### API Request Pattern
+```javascript
+const response = await request.method('endpoint', {
+  headers: { 'Authorization': 'Bearer token' },
+  data: requestBody // for POST/PUT/PATCH
+});
+```
+
+#### Assertion Pattern
+```javascript
+// Status code
+expect(response.status()).toBe(expectedStatus);
+
+// Response body
+const responseBody = await response.json();
+expect(responseBody).toHaveProperty('field', expectedValue);
+
+// Schema validation
+expect(typeof responseBody.field).toBe('expectedType');
+```
+
+### Phase 4: Individual Test Review (optional)
+**For each generated test case, provide:**
+- **Coverage**: What specific scenario this test validates
+- **Test Quality**: Completeness of assertions and error handling
+- **Maintainability**: Code clarity and reusability
+- **Risk Coverage**: Security, edge cases, or business logic validation
+- **Suggestions**: Potential improvements or additional assertions
+
+### Phase 5: Data Extraction Rules
+
+#### From `Steps`:
+- Extract HTTP method (GET, POST, PUT, DELETE)
+- Extract endpoint path from URLs
+- Extract headers from step descriptions
+- Extract request body if mentioned
+
+#### From `Data` (aligned to `Steps` by index):
+- Parse headers (Authorization: Bearer <token>)
+- Extract sample request/response payloads
+- Parse expected response structures
+
+#### From `Expected` (aligned to `Steps` by index):
+- Extract expected status codes (200, 401, 404, 500)
+- Extract response structure requirements
+- Extract validation requirements
+
+## Code Generation Rules
+
+### Test Naming
+- Use descriptive test names from `Name`
+- Include priority in test name for clarity
+- Group by endpoint/feature
+
+### Request Configuration
+- Always include timeout: 30000ms for API tests
+- Use request context, not page context for API testing
+- Handle different HTTP methods appropriately
+
+### Error Handling
+- Test negative scenarios with proper error assertions
+- Validate error response structure
+- Check for appropriate error status codes
+
+- Use test data from the JSON `Data` array
+- Create data objects for complex payloads
+- Use environment variables for tokens/URLs when possible
+
+## Output Format
+**For each JSON test case, generate:**
+1. One `.spec.ts` or `.spec.js` file with a Playwright test (prefer separate file per test case)
+2. Optional short review for each test case
+
+**Final deliverable:**
+- One file per test case under `5__Execution_testscripts/scripts/`
+
+## Processing Instructions
+1. **Read JSON file** and identify total number of test cases
+2. **Process each test case sequentially** - do not batch process
+3. **Generate one test file per test case** and write to `5__Execution_testscripts/scripts/`
+4. **Ask for confirmation** before proceeding (optional)
+5. **Provide running progress** (e.g., "Processing test case 3 of 11")
+
+## Quality Standards
+- Each JSON test case becomes exactly one Playwright test
+- Maintain traceability to original test case names and IDs
+- Use consistent coding patterns across all generated tests
+- Include meaningful error messages in assertions
+- Add comments with original test case `Name`
+- Provide actionable feedback in each test review

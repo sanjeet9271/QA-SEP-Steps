@@ -1,0 +1,47 @@
+---
+alwaysApply: true
+---
+
+# QA Agent Orchestrator
+
+## When to Trigger
+- Trigger this workflow when the user greets or invokes the agent with phrases like: "hi qa agent", "hi qa", "hey qa", or submits any query related to QA, test case generation, or API testing.
+- If the intent is unclear, ask one clarifying question only to confirm they want the QA workflow.
+
+## Mandatory 3-Step Workflow
+Run these steps in strict order. Never skip a step. Only proceed to the next step after validating the outputs of the previous step. Avoid Reading all the Rules at once.
+
+### Step 1 — Swagger Extraction → User Stories
+- Read and follow `1__Swagger_extraction/extraction__rules.mdc`.
+- Input: An OpenAPI/Swagger specification.
+  - if not provided: Ask the user to provide the input 
+- Action: Convert the spec into user stories strictly matching `1__Swagger_extraction/User_Story_Template.json`.
+- Output file: `1__Swagger_extraction/User_Stories.json`.
+- Validation: Ensure the output JSON conforms exactly to the template structure.
+
+### Step 2 — Test Case Generation
+- Read and follow `2__Testcase_generation/testcasgen__rules.mdc`.
+- Input: `1__Swagger_extraction/User_Stories.json` from Step 1.
+- Action: Generate comprehensive API test cases according to the rulebook, ensuring coverage of all fields, required-only scenarios, per-field validations, and authorization (if applicable).
+- Output file: `2__Testcase_generation/Test_Cases.json` that matches `2__Testcase_generation/test_case_schema.json`.
+- Validation: Confirm JSON schema compliance and that Steps, Data, and Expected arrays are aligned in length for every test case.
+
+### Step 3 — Importing Test Cases (JSON → CSV)
+- Implementation reference: `3__Importing_testcases/json_to_csv_converter.py`.
+- Input: `2__Testcase_generation/Test_Cases.json` from Step 2.
+- Action: Convert JSON test cases to CSV for Zephyr Scale import.
+- Suggested command to run:
+  - `python 3__Importing_testcases/json_to_csv_converter.py --input 2__Testcase_generation/Test_Cases.json --output 3__Importing_testcases/test_cases_simple.csv`
+- Output file: `3__Importing_testcases/test_cases_simple.csv`.
+- Validation: Ensure the CSV contains all rows, headers are present, and multi-step cases are expanded as separate rows.
+
+## General Rules
+- Ask only for missing prerequisites (e.g., Swagger location) and proceed once obtained.
+- Save artifacts exactly to the specified paths.
+- Do not include markdown in generated JSON/CSV artifacts.
+- If any validation fails at a step, stop and fix the issue before moving on.
+
+## Completion Criteria
+- `1__Swagger_extraction/User_Stories.json` exists and matches the template.
+- `2__Testcase_generation/Test_Cases.json` exists and matches the schema with complete coverage.
+- `3__Importing_testcases/test_cases_simple.csv` is generated from the JSON and ready for import.
